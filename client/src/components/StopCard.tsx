@@ -9,6 +9,18 @@ interface StopCardProps {
   isLast: boolean;
 }
 
+const categoryEmojis: Record<string, string> = {
+  food: "🍽️",
+  sightseeing: "📸",
+  beach: "🏖️",
+  nature: "🌲",
+  shopping: "🛍️",
+  culture: "🏛️",
+  nightlife: "🌃",
+  activity: "🏃",
+  other: "📍"
+};
+
 export function StopCard({
   stop,
   onRemove,
@@ -19,36 +31,42 @@ export function StopCard({
 }: StopCardProps) {
   return (
     <article className="stop-card">
-      <div>
-        <span>{stop.category}</span>
-
+      <div className="stop-info">
+        <span className="stop-category">
+          {categoryEmojis[stop.category] || "📍"} {stop.category}
+        </span>
         <h3>{stop.name}</h3>
-
         <p>{stop.description}</p>
-
-        <small>
-          {stop.time} · {stop.durationMinutes} minutes
-        </small>
+        <div className="stop-meta">
+          <span>🕒 {stop.time}</span>
+          <span>•</span>
+          <span>⏳ {stop.durationMinutes} min</span>
+        </div>
       </div>
 
       <div className="stop-actions">
         <button
+          className="btn-icon"
           onClick={onMoveUp}
           disabled={isFirst}
           type="button"
+          aria-label="Move up"
         >
           ↑
         </button>
 
         <button
+          className="btn-icon"
           onClick={onMoveDown}
           disabled={isLast}
           type="button"
+          aria-label="Move down"
         >
           ↓
         </button>
 
         <button
+          className="btn-remove"
           onClick={() => onRemove(stop.id)}
           type="button"
         >
