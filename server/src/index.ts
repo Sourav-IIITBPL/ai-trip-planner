@@ -7,13 +7,14 @@ const app = express();
 
 const PORT = Number(process.env.PORT) || 5000;
 
-app.use(
-  cors({
-    origin: "http://localhost:5173"
-  })
-);
+app.use(cors());
 
 app.use(express.json());
+
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 
 app.get("/api/health", (_req, res) => {
   res.json({

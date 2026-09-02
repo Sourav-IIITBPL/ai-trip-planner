@@ -105,7 +105,66 @@ Rules:
 `;
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-3.6-flash",
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: itineraryJsonSchema
+    }
+  });
+
+  if (!response.text) {
+    throw new Error("AI returned an empty response");
+  }
+
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(response.text);
+  } catch {
+    throw new Error("AI returned malformed JSON");
+  }
+
+  const validated = itinerarySchema.safeParse(parsed);
+
+  if (!validated.success) {
+    throw new Error("AI returned an invalid itinerary structure");
+  }
+
+  if (validated.data.days.length === 0) {
+    throw new Error("AI returned an empty itinerary");
+  }
+
+  return validated.data;
+}
+
+export async function refineItinerary(
+  currentItinerary: any,
+  instruction: string
+) {
+  const prompt = `
+You are a travel itinerary generator.
+The user has an existing itinerary, and wants to modify it based on their new instructions.
+
+Current Itinerary:
+${JSON.stringify(currentItinerary, null, 2)}
+
+User Instruction for Modification:
+${instruction}
+
+Rules:
+- Return only structured JSON matching the provided schema.
+- Do not include markdown.
+- Do not include commentary outside the JSON.
+- Make the updated itinerary realistic.
+- Keep the number of stops reasonable for each day.
+- Each stop must have a unique id (you can keep existing ones or generate new ones for new stops).
+- durationMinutes must be a positive integer.
+- category must use one of the allowed categories.
+`;
+
+  const response = await ai.models.generateContent({
+    model: "gemini-3.6-flash",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
